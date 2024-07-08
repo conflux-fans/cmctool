@@ -27,13 +27,19 @@ func init() {
 
 func Loop() {
 	c := cron.New()
-	c.AddFunc("@daily", func() {
+
+	var entryId cron.EntryID
+	entryId, _ = c.AddFunc("@daily", func() {
 		common.Retry(3, time.Minute, collectVolumeAndMail)
+		nextTime := c.Entry(cron.EntryID(entryId)).Next
+		log.Printf("Next task execution time: %v\n", nextTime)
 	})
+
 	c.Start()
 }
 
 func collectVolumeAndMail() error {
+	log.Print("=== Start Collect Volumes ===")
 	spots, err := collectSpotVloumes()
 	if err != nil {
 		return err
@@ -69,6 +75,7 @@ func collectVolumeAndMail() error {
 		return err
 	}
 	log.Print("Send mail done")
+	log.Print("=== Collect Volumes Done ===")
 
 	return nil
 }
