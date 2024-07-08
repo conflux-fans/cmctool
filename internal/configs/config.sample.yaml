@@ -1,0 +1,8 @@
+mail:
+  sender:
+    host: "smtp.feishu.cn"
+    port: 465
+    username: "abc@nftrainbow.cn"
+    password: "pswd"
+  receivers:
+    - "finance@confluxnetwork.org"
