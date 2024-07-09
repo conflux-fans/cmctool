@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/conflux-fans/cmctool/internal/configs"
-	"github.com/conflux-fans/cmctool/internal/sdk"
-	"github.com/conflux-fans/cmctool/internal/sdk/types"
+	sdk "github.com/conflux-fans/cmctool/pkg/cmcsdk"
+	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/conflux-fans/cmctool/pkg/common"
 	"github.com/conflux-fans/cmctool/pkg/email"
 	"github.com/robfig/cron/v3"

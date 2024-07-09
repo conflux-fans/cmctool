@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/conflux-fans/cmctool/internal/sdk/types"
+	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/go-resty/resty/v2"
 )
 

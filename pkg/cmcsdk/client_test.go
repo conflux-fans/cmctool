@@ -3,7 +3,7 @@ package sdk
 import (
 	"testing"
 
-	"github.com/conflux-fans/cmctool/internal/sdk/types"
+	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 )
 
 func TestMarketPairLatest(t *testing.T) {
