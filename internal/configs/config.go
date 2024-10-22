@@ -1,12 +1,12 @@
 package configs
 
 import (
-	"log"
 	"path"
 	"path/filepath"
 	"runtime"
 
 	"github.com/conflux-fans/cmctool/pkg/cfgutil"
+	"github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
 )
@@ -21,7 +21,7 @@ func Init() {
 	if !ok {
 		panic("Error: Unable to get current file path")
 	}
-	log.Print("Current file path:", file)
+	logrus.Info("Current file path:", file)
 	cwd := filepath.Dir(file) // get curent path
 
 	viper.SetConfigName("config")                // name of config file (without extension)

@@ -2,7 +2,6 @@ package volume
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 	"github.com/conflux-fans/cmctool/pkg/common"
 	"github.com/conflux-fans/cmctool/pkg/email"
 	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -32,25 +32,25 @@ func Loop() {
 	entryId, _ = c.AddFunc("@daily", func() {
 		common.Retry(3, time.Minute, collectVolumeAndMail)
 		nextTime := c.Entry(cron.EntryID(entryId)).Next
-		log.Printf("Next task execution time: %v\n", nextTime)
+		logrus.Infof("Next task execution time: %v\n", nextTime)
 	})
 
 	c.Start()
 }
 
 func collectVolumeAndMail() error {
-	log.Print("=== Start Collect Volumes ===")
+	logrus.Info("=== Start Collect Volumes ===")
 	spots, err := collectSpotVloumes()
 	if err != nil {
 		return err
 	}
-	log.Print("Get spots done")
+	logrus.Info("Get spots done")
 
 	perps, err := collectPerpVolumes()
 	if err != nil {
 		return err
 	}
-	log.Print("Get perps done")
+	logrus.Info("Get perps done")
 
 	all := spots
 	for k, v := range perps {
@@ -63,7 +63,7 @@ func collectVolumeAndMail() error {
 	if err = writeToExcel(excelPath, spots); err != nil {
 		return err
 	}
-	log.Print("Save excel done")
+	logrus.Info("Save excel done")
 
 	sender := configs.Get().Mail.Sender
 	receivers := configs.Get().Mail.Receivers
@@ -74,8 +74,8 @@ func collectVolumeAndMail() error {
 	if err = m.Send(receivers, "交易量统计", "", []string{excelPath}); err != nil {
 		return err
 	}
-	log.Print("Send mail done")
-	log.Print("=== Collect Volumes Done ===")
+	logrus.Info("Send mail done")
+	logrus.Info("=== Collect Volumes Done ===")
 
 	return nil
 }
@@ -86,21 +86,21 @@ func collectSpotVloumes() (spots map[string]*types.MarketPairsResp, err error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("get btc spot done")
+	logrus.Infoln("get btc spot done")
 
 	time.Sleep(time.Second)
 	ethSpot, err := client.MarketPairLatest(types.MarketPairQueryParams{"ethereum", "spot", 1, 100})
 	if err != nil {
 		return nil, err
 	}
-	log.Println("get eth spot done")
+	logrus.Infoln("get eth spot done")
 
 	time.Sleep(time.Second)
 	cfxSpot, err := client.MarketPairLatest(types.MarketPairQueryParams{"conflux-network", "spot", 1, 100})
 	if err != nil {
 		return nil, err
 	}
-	log.Println("get cfx spot done")
+	logrus.Infoln("get cfx spot done")
 
 	spots = map[string]*types.MarketPairsResp{
 		"BTC-Spot": btcSpot,
@@ -116,21 +116,21 @@ func collectPerpVolumes() (perps map[string]*types.MarketPairsResp, err error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("get btc perp done")
+	logrus.Infoln("get btc perp done")
 
 	time.Sleep(time.Second)
 	ethPerp, err := client.MarketPairLatest(types.MarketPairQueryParams{"ethereum", "perpetual", 1, 100})
 	if err != nil {
 		return nil, err
 	}
-	log.Println("get eth perp done")
+	logrus.Infoln("get eth perp done")
 
 	time.Sleep(time.Second)
 	cfxPerp, err := client.MarketPairLatest(types.MarketPairQueryParams{"conflux-network", "perpetual", 1, 100})
 	if err != nil {
 		return nil, err
 	}
-	log.Println("get cfx perp done")
+	logrus.Infoln("get cfx perp done")
 
 	perps = map[string]*types.MarketPairsResp{
 		"BTC-Perp": btcPerp,
@@ -194,6 +194,6 @@ func writeToExcel(excelPath string, allTokenMarketPairs map[string]*types.Market
 		return err
 	}
 
-	log.Println("Excel file created successfully.")
+	logrus.Infoln("Excel file created successfully.")
 	return nil
 }
