@@ -1,4 +1,4 @@
-package sdk
+package cmcsdk
 
 import (
 	"encoding/json"
@@ -12,9 +12,9 @@ type Client struct {
 	inner *resty.Client
 }
 
-func NewClient() *Client {
+func NewClient(baseUrl string) *Client {
 	client := resty.New()
-	client.BaseURL = "https://api.coinmarketcap.com/data-api/v3"
+	client.BaseURL = baseUrl
 	return &Client{
 		inner: client,
 	}

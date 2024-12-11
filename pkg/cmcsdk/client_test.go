@@ -1,4 +1,4 @@
-package sdk
+package cmcsdk
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestMarketPairLatest(t *testing.T) {
-	client := NewClient()
+	client := NewClient("https://api.coinmarketcap.com/data-api/v3")
 	resp, err := client.MarketPairLatest(types.MarketPairQueryParams{
 		Slug:     "conflux",
 		Category: "spot",

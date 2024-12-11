@@ -29,12 +29,12 @@ func Init() {
 	viper.AddConfigPath(cwd)                     // optionally look for config in the working directory
 	viper.AddConfigPath(path.Join(cwd, ".."))    // optionally look for config in the working directory
 	viper.AddConfigPath(path.Join(cwd, "../..")) // optionally look for config in the working directory
-	_config = *cfgutil.MustLoadViper[Config]()
+	_config = *cfgutil.MustLoad[Config]()
 }
 
 func InitByFile(configPath string) {
 	viper.SetConfigFile(configPath)
-	_config = *cfgutil.MustLoadViper[Config]()
+	_config = *cfgutil.MustLoad[Config]()
 }
 
 func Get() *Config {
