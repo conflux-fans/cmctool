@@ -14,13 +14,22 @@ func Start() {
 	c := cron.New()
 
 	var entryId cron.EntryID
-	entryId, _ = c.AddFunc(configs.Get().Service.Cron.Schedule, func() {
+	var err error
+	entryId, err = c.AddFunc(configs.Get().Service.Cron.Schedule, func() {
 		common.Retry(3, time.Minute, scheduleDataCollection)
-		nextTime := c.Entry(cron.EntryID(entryId)).Next
-		logrus.Infof("[Services] Next task execution time: %v\n", nextTime)
+		logNextRunTime(c, entryId)
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	c.Start()
+	logNextRunTime(c, entryId)
+}
+
+func logNextRunTime(c *cron.Cron, entryId cron.EntryID) {
+	nextTime := c.Entry(cron.EntryID(entryId)).Next
+	logrus.Infof("[Services] Next task execution time: %v\n", nextTime)
 }
 
 func scheduleDataCollection() error {
