@@ -3,17 +3,16 @@ package servicies
 import (
 	"github.com/conflux-fans/go-scan-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
 type PosRewardFetcher struct {
-	posAddress []ethcommon.Hash
+	posAddress []common.Hash
 	scanClient *client.Client
 }
 
-func NewPosRewardFetcher(scanUrl string, posAddress []ethcommon.Hash) *PosRewardFetcher {
+func NewPosRewardFetcher(scanUrl string, posAddress []common.Hash) *PosRewardFetcher {
 	scanClient := client.NewClient(scanUrl)
 	return &PosRewardFetcher{
 		posAddress: posAddress,
