@@ -30,68 +30,28 @@ func logNextRunTime(c *cron.Cron, entryId cron.EntryID) {
 }
 
 func runVolumeTask(c *cron.Cron) cron.EntryID {
-	entryId, err := c.AddFunc(configs.Get().Service.Cron.Volume, func() {
+	var entryId cron.EntryID
+	_entryId, err := c.AddFunc(configs.Get().Service.Cron.Volume, func() {
 		common.Retry(3, time.Minute, NewVolumeFetcher().FetchAndMail)
+		logNextRunTime(c, entryId)
 	})
 	if err != nil {
 		panic(err)
 	}
+	entryId = _entryId
 	return entryId
 }
 
 func runPosRewardTask(c *cron.Cron) cron.EntryID {
+	var entryId cron.EntryID
 	cfg := configs.Get()
-	entryId, err := c.AddFunc(configs.Get().Service.Cron.PosReward, func() {
+	_entryId, err := c.AddFunc(cfg.Service.Cron.PosReward, func() {
 		common.Retry(3, time.Minute, NewPosRewardFetcher(cfg.PosValidatorsByScan, cfg.PosValidatorsByContract).FetchAndMail)
+		logNextRunTime(c, entryId)
 	})
 	if err != nil {
 		panic(err)
 	}
+	entryId = _entryId
 	return entryId
 }
-
-// func runScheduleTask() {
-// 	cfg := configs.Get()
-
-// 	var w sync.WaitGroup
-
-// 	// w.Add(1)
-// 	// go func() {
-// 	// 	common.Retry(3, time.Minute, NewVolumeFetcher().FetchAndMail)
-// 	// 	w.Done()
-// 	// }()
-
-// 	w.Add(1)
-// 	go func() {
-// 		common.Retry(3, time.Minute, NewPosRewardFetcher(cfg.PosValidatorsByScan, cfg.PosValidatorsByContract).FetchAndMail)
-// 		w.Done()
-// 	}()
-
-// 	w.Wait()
-// }
-
-// func scheduleDataCollection() error {
-// 	cfg := configs.Get()
-
-// 	volumnFetcher := volume.NewVolumeFetcher(cfg.Server.Cmc)
-// 	logrus.Info("[Services] === Start Collect Volumes ===")
-// 	allTokenMarketPairs, err := volumnFetcher.CollectSpotAndPerpVolumes()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// pos rewards
-// 	posRewardFetcher := NewPosRewardFetcher(cfg.PosValidatorsByScan)
-// 	posRewards, err := posRewardFetcher.GetPosRewards()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	reporter := NewReporter(allTokenMarketPairs, posRewards)
-// 	excelPath, err := reporter.WriteAllToExcel()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return reporter.SendMail(excelPath)
-// }
