@@ -1,30 +1,40 @@
 package servicies
 
 import (
+	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/conflux-fans/cmctool/internal/configs"
+	"github.com/conflux-fans/cmctool/internal/contracts"
 	"github.com/conflux-fans/go-scan-sdk/client"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
 type PosRewardFetcher struct {
-	posAddress []common.Hash
-	scanClient *client.Client
+	posValidatorsByScan     []*configs.PosValidatorByScan
+	posValidatorsByContract []*configs.PosValidatorByContract
+	scanClient              *client.Client
+	cspaceClient            *sdk.Client
 }
 
-func NewPosRewardFetcher(scanUrl string, posAddress []common.Hash) *PosRewardFetcher {
-	scanClient := client.NewClient(scanUrl)
+func NewPosRewardFetcher(posValidatorsByScan []*configs.PosValidatorByScan, posValidatorsByContract []*configs.PosValidatorByContract) *PosRewardFetcher {
 	return &PosRewardFetcher{
-		posAddress: posAddress,
-		scanClient: scanClient,
+		posValidatorsByScan:     posValidatorsByScan,
+		posValidatorsByContract: posValidatorsByContract,
+		scanClient:              client.NewClient(configs.Get().Server.Scan),
+		cspaceClient:            sdk.MustNewClient(configs.Get().Server.CoreSpaceNode),
 	}
 }
 
-func (p *PosRewardFetcher) GetPosRewards() (map[common.Hash]decimal.Decimal, error) {
+type PosValidatorByScanWithResult struct {
+	*configs.PosValidatorByScan
+	Reward decimal.Decimal
+}
+
+func (p *PosRewardFetcher) GetPosRewardsByScan() ([]*PosValidatorByScanWithResult, error) {
 	logrus.Info("[PosRewardFetcher] get pos rewards")
-	rewards := make(map[common.Hash]decimal.Decimal)
-	for _, posAddress := range p.posAddress {
-		posOverView, err := p.scanClient.GetPosAccountOverview(posAddress)
+	results := make([]*PosValidatorByScanWithResult, 0)
+	for _, posAddress := range p.posValidatorsByScan {
+		posOverView, err := p.scanClient.GetPosAccountOverview(posAddress.PosAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +44,71 @@ func (p *PosRewardFetcher) GetPosRewards() (map[common.Hash]decimal.Decimal, err
 		}
 
 		rewardInEth := rewardInWei.Div(decimal.New(1, 18))
-		rewards[posAddress] = rewardInEth
+		results = append(results, &PosValidatorByScanWithResult{
+			PosValidatorByScan: posAddress,
+			Reward:             rewardInEth,
+		})
 	}
-	return rewards, nil
+	return results, nil
+}
+
+type PosValidatorByContractWithResult struct {
+	*configs.PosValidatorByContract
+	Reward decimal.Decimal
+}
+
+func (p *PosRewardFetcher) GetPosRewardsByContract() ([]*PosValidatorByContractWithResult, error) {
+	results := make([]*PosValidatorByContractWithResult, 0)
+
+	for _, v := range p.posValidatorsByContract {
+		posPoolContract, err := contracts.NewPosPool(v.PowAddress, p.cspaceClient)
+		if err != nil {
+			return nil, err
+		}
+		interest, err := posPoolContract.UserInterest(nil, v.QueryUser.MustGetCommonAddress())
+		if err != nil {
+			return nil, err
+		}
+		interestInEth := decimal.NewFromBigInt(interest, 0).Div(decimal.New(1, 18))
+		results = append(results, &PosValidatorByContractWithResult{
+			PosValidatorByContract: v,
+			Reward:                 interestInEth,
+		})
+	}
+
+	return results, nil
+}
+
+func (p *PosRewardFetcher) FetchAndMail() error {
+	logrus.Info("[PosRewardFetcher] === Start Collect Pos Rewards ===")
+	posRewardsByContractResult, err := p.GetPosRewardsByContract()
+	if err != nil {
+		logrus.Errorf("[PosRewardFetcher] Collect Pos Rewards by contract failed: %v", err)
+		return err
+	}
+	logrus.Info("[PosRewardFetcher] === Collect Pos Rewards by contract done ===")
+
+	posRewardsByScanResult, err := p.GetPosRewardsByScan()
+	if err != nil {
+		logrus.Errorf("[PosRewardFetcher] Collect Pos Rewards by scan failed: %v", err)
+		return err
+	}
+	logrus.Info("[PosRewardFetcher] === Collect Pos Rewards by scan done ===")
+
+	reporter := NewReporter(nil, posRewardsByScanResult, posRewardsByContractResult)
+	excelPath, err := reporter.WriteToExcel(&WriteEnables{
+		IncludePosRewards: true,
+	})
+	if err != nil {
+		logrus.Errorf("[PosRewardFetcher] Write to excel failed: %v", err)
+		return err
+	}
+
+	err = reporter.SendMail(excelPath, configs.Get().Mail.Receivers.PosReward)
+	if err != nil {
+		logrus.Errorf("[PosRewardFetcher] Send mail failed: %v", err)
+		return err
+	}
+	logrus.Info("[PosRewardFetcher] === Send mail Done ===")
+	return nil
 }

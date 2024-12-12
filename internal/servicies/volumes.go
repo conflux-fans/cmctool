@@ -1,8 +1,9 @@
-package volume
+package servicies
 
 import (
 	"time"
 
+	"github.com/conflux-fans/cmctool/internal/configs"
 	"github.com/conflux-fans/cmctool/pkg/cmcsdk"
 	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/sirupsen/logrus"
@@ -12,9 +13,9 @@ type VolumeFetcher struct {
 	cmcClient *cmcsdk.Client
 }
 
-func NewVolumeFetcher(cmcBaseUrl string) *VolumeFetcher {
+func NewVolumeFetcher() *VolumeFetcher {
 	return &VolumeFetcher{
-		cmcClient: cmcsdk.NewClient(cmcBaseUrl),
+		cmcClient: cmcsdk.NewClient(configs.Get().Server.Cmc),
 	}
 }
 
@@ -97,4 +98,29 @@ func (v *VolumeFetcher) CollectPerpVolumes() (perps map[string]*types.MarketPair
 		"CFX-Perp": cfxPerp,
 	}
 	return
+}
+
+func (v *VolumeFetcher) FetchAndMail() error {
+	logrus.Info("[VolumeFetcher] === Start Collect Volumes ===")
+	allTokenMarketPairs, err := v.CollectSpotAndPerpVolumes()
+	if err != nil {
+		return err
+	}
+
+	reporter := NewReporter(allTokenMarketPairs, nil, nil)
+	excelPath, err := reporter.WriteToExcel(&WriteEnables{
+		IncludeTokenMarket: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = reporter.SendMail(excelPath, configs.Get().Mail.Receivers.Volume)
+	if err != nil {
+		logrus.Errorf("[VolumeFetcher] Send mail failed: %v", err)
+		return err
+	}
+
+	logrus.Info("[VolumeFetcher] === Send mail Done ===")
+	return nil
 }

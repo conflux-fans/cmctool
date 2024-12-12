@@ -1,7 +1,6 @@
 package servicies
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -10,27 +9,52 @@ import (
 	"github.com/conflux-fans/cmctool/internal/configs"
 	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/conflux-fans/cmctool/pkg/email"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
 )
 
 type Reporter struct {
-	AllTokenMarketPairs map[string]*types.MarketPairsResp
-	PosRewards          map[common.Hash]decimal.Decimal
+	AllTokenMarketPairs        map[string]*types.MarketPairsResp
+	PosRewardsByScanResult     []*PosValidatorByScanWithResult
+	PosRewardsByContractResult []*PosValidatorByContractWithResult
 }
 
-func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp, posRewards map[common.Hash]decimal.Decimal) *Reporter {
+func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp, posRewardsByScanResult []*PosValidatorByScanWithResult, posRewardsByContractResult []*PosValidatorByContractWithResult) *Reporter {
 	return &Reporter{
-		AllTokenMarketPairs: allTokenMarketPairs,
-		PosRewards:          posRewards,
+		AllTokenMarketPairs:        allTokenMarketPairs,
+		PosRewardsByScanResult:     posRewardsByScanResult,
+		PosRewardsByContractResult: posRewardsByContractResult,
 	}
 }
 
-func (r *Reporter) WriteToExcel() (string, error) {
+// func (r *Reporter) WriteAllToExcel() (string, error) {
+// 	return r.writeToExcel(true, true)
+// }
+
+// func (r *Reporter) WriteVolumeToExcel() (string, error) {
+// 	return r.writeToExcel(true, false)
+// }
+
+// func (r *Reporter) WritePosRewardsToExcel() (string, error) {
+// 	return r.writeToExcel(false, true)
+// }
+
+type WriteEnables struct {
+	IncludeTokenMarket bool
+	IncludePosRewards  bool
+}
+
+func (r *Reporter) WriteToExcel(enables *WriteEnables) (string, error) {
 	yesterday := time.Now().Add(-24 * time.Hour).Format("2006-01-02")
-	excelPath := fmt.Sprintf("./out/volume-and-pos-%v.xlsx", yesterday)
+
+	excelPath := "./out/"
+	if enables.IncludeTokenMarket {
+		excelPath += "交易量-"
+	}
+	if enables.IncludePosRewards {
+		excelPath += "POS奖励-"
+	}
+	excelPath += yesterday + ".xlsx"
 
 	dir := filepath.Dir(excelPath)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
@@ -44,12 +68,16 @@ func (r *Reporter) WriteToExcel() (string, error) {
 	// 设置表头
 	// 写入结构体数组数据
 	// 从第二行开始写入数据
-	if err := r.writeTokenMarket(f); err != nil {
-		return "", err
+	if enables.IncludeTokenMarket {
+		if err := r.writeTokenMarket(f); err != nil {
+			return "", err
+		}
 	}
 
-	if err := r.writePosRewards(f); err != nil {
-		return "", err
+	if enables.IncludePosRewards {
+		if err := r.writePosRewards(f); err != nil {
+			return "", err
+		}
 	}
 
 	f.DeleteSheet("Sheet1")
@@ -60,7 +88,7 @@ func (r *Reporter) WriteToExcel() (string, error) {
 		return "", err
 	}
 
-	logrus.Infoln("[Reporter] Excel file created successfully.")
+	logrus.WithField("excelPath", excelPath).WithField("includePosRewards", enables.IncludePosRewards).WithField("includeTokenMarket", enables.IncludeTokenMarket).Infoln("[Reporter] Excel file created successfully.")
 	return excelPath, nil
 }
 
@@ -105,30 +133,45 @@ func (r *Reporter) writeTokenMarket(f *excelize.File) error {
 func (r *Reporter) writePosRewards(f *excelize.File) error {
 	sheetName := "POS奖励"
 	f.NewSheet(sheetName)
-	f.SetCellValue(sheetName, "A1", "POS 地址")
-	f.SetCellValue(sheetName, "B1", "奖励(CFX)")
+	f.SetCellValue(sheetName, "A1", "Validator")
+	f.SetCellValue(sheetName, "B1", "POS 地址")
+	f.SetCellValue(sheetName, "C1", "POW 地址")
+	f.SetCellValue(sheetName, "D1", "查询用户")
+	f.SetCellValue(sheetName, "E1", "奖励(CFX)")
 
 	row := 2
-	for posAddress, reward := range r.PosRewards {
-		f.SetCellValue(sheetName, "A"+strconv.Itoa(row), posAddress.Hex())
-		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.String())
+	for _, reward := range r.PosRewardsByScanResult {
+		f.SetCellValue(sheetName, "A"+strconv.Itoa(row), reward.Name)
+		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
+		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
+		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Reward.String())
 		row++
 	}
+
+	for _, reward := range r.PosRewardsByContractResult {
+		f.SetCellValue(sheetName, "A"+strconv.Itoa(row), reward.Name)
+		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
+		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
+		f.SetCellValue(sheetName, "D"+strconv.Itoa(row), reward.QueryUser.String())
+		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Reward.String())
+		row++
+	}
+
 	return nil
 }
 
-func (r *Reporter) SendMail(excelPath string) error {
+func (r *Reporter) SendMail(excelPath string, receivers []string) error {
 	sender := configs.Get().Mail.Sender
-	receivers := configs.Get().Mail.Receivers
+	// receivers := configs.Get().Mail.Receivers
 
 	m := email.
 		NewMailer(sender.Host, sender.Port, sender.Username, sender.Password).
 		SetOption(new(email.MailerOptions).WithSenderName(sender.FromAlias))
-	if err := m.Send(receivers, "交易量与POS奖励统计", "", []string{excelPath}); err != nil {
+	if err := m.Send(receivers, filepath.Base(excelPath), "", []string{excelPath}); err != nil {
 		return err
 	}
 	logrus.Info("[Reporter] Send mail done")
-	logrus.Info("[Reporter] === Collect Volumes Done ===")
+	logrus.Info("[Reporter] === Collect Done ===")
 
 	return nil
 }
