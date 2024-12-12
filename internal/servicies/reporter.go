@@ -137,7 +137,8 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 	f.SetCellValue(sheetName, "B1", "POS 地址")
 	f.SetCellValue(sheetName, "C1", "POW 地址")
 	f.SetCellValue(sheetName, "D1", "查询用户")
-	f.SetCellValue(sheetName, "E1", "奖励(CFX)")
+	f.SetCellValue(sheetName, "E1", "历史总收益(CFX)")
+	f.SetCellValue(sheetName, "F1", "实时收益(CFX)")
 
 	row := 2
 	for _, reward := range r.PosRewardsByScanResult {
@@ -153,7 +154,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
 		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
 		f.SetCellValue(sheetName, "D"+strconv.Itoa(row), reward.QueryUser.String())
-		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Reward.String())
+		f.SetCellValue(sheetName, "F"+strconv.Itoa(row), reward.Reward.String())
 		row++
 	}
 
@@ -162,7 +163,6 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 
 func (r *Reporter) SendMail(excelPath string, receivers []string) error {
 	sender := configs.Get().Mail.Sender
-	// receivers := configs.Get().Mail.Receivers
 
 	m := email.
 		NewMailer(sender.Host, sender.Port, sender.Username, sender.Password).

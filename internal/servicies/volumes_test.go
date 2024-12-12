@@ -11,10 +11,10 @@ import (
 
 func TestCollectVolumeAndMail(t *testing.T) {
 	configs.Init()
-	// err := NewVolumeFetcher().CollectSpotVloumes()
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	err := NewVolumeFetcher().FetchAndMail()
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestRemoveSheet(t *testing.T) {
