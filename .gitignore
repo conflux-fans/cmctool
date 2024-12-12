@@ -1,3 +1,4 @@
 config.yaml
 out
 .log
+.DS_Store

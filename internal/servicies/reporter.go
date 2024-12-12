@@ -138,7 +138,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 	f.SetCellValue(sheetName, "C1", "POW 地址")
 	f.SetCellValue(sheetName, "D1", "查询用户")
 	f.SetCellValue(sheetName, "E1", "历史总收益(CFX)")
-	f.SetCellValue(sheetName, "F1", "实时收益(CFX)")
+	f.SetCellValue(sheetName, "F1", "成本期收益(CFX)")
 
 	row := 2
 	for _, reward := range r.PosRewardsByScanResult {
