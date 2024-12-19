@@ -62,6 +62,8 @@ github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAK
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
 github.com/conflux-fans/go-scan-sdk v0.0.0-20241212063814-fb13743a677f h1:vJ1HfSSrgdeRcxbMMdBAZZnKO0TZr1PEG9eGV79c6rM=
 github.com/conflux-fans/go-scan-sdk v0.0.0-20241212063814-fb13743a677f/go.mod h1:OtpB+JjpEAmwPVPol5VwHV/+Y4e7+cNa5v9d+xQALFE=
+github.com/conflux-fans/go-scan-sdk v0.0.0-20241219100544-88bbffafe27b h1:hnl7bTyRHloICDPFpiIOl8LvSNpFDtzbYl3oyKxq/EQ=
+github.com/conflux-fans/go-scan-sdk v0.0.0-20241219100544-88bbffafe27b/go.mod h1:OtpB+JjpEAmwPVPol5VwHV/+Y4e7+cNa5v9d+xQALFE=
 github.com/consensys/bavard v0.1.13 h1:oLhMLOFGTLdlda/kma4VOJazblc7IM5y5QPd2A/YjhQ=
 github.com/consensys/bavard v0.1.13/go.mod h1:9ItSMtA/dXMAiL7BG6bqW2m3NdSEObYWoH223nGHukI=
 github.com/consensys/gnark-crypto v0.12.1 h1:lHH39WuuFgVHONRl3J0LRBtuYdQTumFSDtJF7HpyG8M=

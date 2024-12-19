@@ -9,17 +9,18 @@ import (
 	"github.com/conflux-fans/cmctool/internal/configs"
 	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/conflux-fans/cmctool/pkg/email"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
 )
 
 type Reporter struct {
 	AllTokenMarketPairs        map[string]*types.MarketPairsResp
-	PosRewardsByScanResult     []*PosValidatorByScanWithResult
-	PosRewardsByContractResult []*PosValidatorByContractWithResult
+	PosRewardsByScanResult     []*PosValidatorByScanWithResult[decimal.Decimal]
+	PosRewardsByContractResult []*PosValidatorByContractWithResult[decimal.Decimal]
 }
 
-func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp, posRewardsByScanResult []*PosValidatorByScanWithResult, posRewardsByContractResult []*PosValidatorByContractWithResult) *Reporter {
+func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp, posRewardsByScanResult []*PosValidatorByScanWithResult[decimal.Decimal], posRewardsByContractResult []*PosValidatorByContractWithResult[decimal.Decimal]) *Reporter {
 	return &Reporter{
 		AllTokenMarketPairs:        allTokenMarketPairs,
 		PosRewardsByScanResult:     posRewardsByScanResult,
@@ -145,7 +146,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "A"+strconv.Itoa(row), reward.Name)
 		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
 		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
-		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Reward.String())
+		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Data.String())
 		row++
 	}
 
@@ -154,7 +155,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
 		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
 		f.SetCellValue(sheetName, "D"+strconv.Itoa(row), reward.QueryUser.String())
-		f.SetCellValue(sheetName, "F"+strconv.Itoa(row), reward.Reward.String())
+		f.SetCellValue(sheetName, "F"+strconv.Itoa(row), reward.Data.String())
 		row++
 	}
 

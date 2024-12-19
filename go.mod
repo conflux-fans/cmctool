@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/Conflux-Chain/go-conflux-sdk v1.5.10
-	github.com/conflux-fans/go-scan-sdk v0.0.0-20241212063814-fb13743a677f
+	github.com/conflux-fans/go-scan-sdk v0.0.0-20241219100544-88bbffafe27b
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/go-resty/resty/v2 v2.16.2
 	github.com/mcuadros/go-defaults v1.2.0

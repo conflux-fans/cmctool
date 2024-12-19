@@ -25,14 +25,14 @@ func NewPosRewardFetcher(posValidatorsByScan []*configs.PosValidatorByScan, posV
 	}
 }
 
-type PosValidatorByScanWithResult struct {
+type PosValidatorByScanWithResult[T any] struct {
 	*configs.PosValidatorByScan
-	Reward decimal.Decimal
+	Data T
 }
 
-func (p *PosRewardFetcher) GetPosRewardsByScan() ([]*PosValidatorByScanWithResult, error) {
+func (p *PosRewardFetcher) GetPosRewardsByScan() ([]*PosValidatorByScanWithResult[decimal.Decimal], error) {
 	logrus.Info("[PosRewardFetcher] get pos rewards")
-	results := make([]*PosValidatorByScanWithResult, 0)
+	results := make([]*PosValidatorByScanWithResult[decimal.Decimal], 0)
 	for _, posAddress := range p.posValidatorsByScan {
 		posOverView, err := p.scanClient.GetPosAccountOverview(posAddress.PosAddress)
 		if err != nil {
@@ -44,21 +44,21 @@ func (p *PosRewardFetcher) GetPosRewardsByScan() ([]*PosValidatorByScanWithResul
 		}
 
 		rewardInEth := rewardInWei.Div(decimal.New(1, 18))
-		results = append(results, &PosValidatorByScanWithResult{
+		results = append(results, &PosValidatorByScanWithResult[decimal.Decimal]{
 			PosValidatorByScan: posAddress,
-			Reward:             rewardInEth,
+			Data:               rewardInEth,
 		})
 	}
 	return results, nil
 }
 
-type PosValidatorByContractWithResult struct {
+type PosValidatorByContractWithResult[T any] struct {
 	*configs.PosValidatorByContract
-	Reward decimal.Decimal
+	Data T
 }
 
-func (p *PosRewardFetcher) GetPosRewardsByContract() ([]*PosValidatorByContractWithResult, error) {
-	results := make([]*PosValidatorByContractWithResult, 0)
+func (p *PosRewardFetcher) GetPosRewardsByContract() ([]*PosValidatorByContractWithResult[decimal.Decimal], error) {
+	results := make([]*PosValidatorByContractWithResult[decimal.Decimal], 0)
 
 	for _, v := range p.posValidatorsByContract {
 		posPoolContract, err := contracts.NewPosPool(v.PowAddress, p.cspaceClient)
@@ -70,9 +70,9 @@ func (p *PosRewardFetcher) GetPosRewardsByContract() ([]*PosValidatorByContractW
 			return nil, err
 		}
 		interestInEth := decimal.NewFromBigInt(interest, 0).Div(decimal.New(1, 18))
-		results = append(results, &PosValidatorByContractWithResult{
+		results = append(results, &PosValidatorByContractWithResult[decimal.Decimal]{
 			PosValidatorByContract: v,
-			Reward:                 interestInEth,
+			Data:                   interestInEth,
 		})
 	}
 
