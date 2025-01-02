@@ -5,6 +5,7 @@ import (
 	"github.com/conflux-fans/cmctool/internal/configs"
 	"github.com/conflux-fans/cmctool/internal/contracts"
 	"github.com/conflux-fans/go-scan-sdk/client"
+	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
@@ -63,11 +64,11 @@ func (p *PosRewardFetcher) GetPosRewardsByContract() ([]*PosValidatorByContractW
 	for _, v := range p.posValidatorsByContract {
 		posPoolContract, err := contracts.NewPosPool(v.PowAddress, p.cspaceClient)
 		if err != nil {
-			return nil, err
+			return nil, errors.WithMessagef(err, "failed to new pos pool contract: %s", v.Name)
 		}
 		interest, err := posPoolContract.UserInterest(nil, v.QueryUser.MustGetCommonAddress())
 		if err != nil {
-			return nil, err
+			return nil, errors.WithMessagef(err, "failed to get user interest: %s", v.Name)
 		}
 		interestInEth := decimal.NewFromBigInt(interest, 0).Div(decimal.New(1, 18))
 		results = append(results, &PosValidatorByContractWithResult[decimal.Decimal]{

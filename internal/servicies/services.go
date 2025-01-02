@@ -32,7 +32,10 @@ func logNextRunTime(c *cron.Cron, entryId cron.EntryID) {
 func runVolumeTask(c *cron.Cron) cron.EntryID {
 	var entryId cron.EntryID
 	_entryId, err := c.AddFunc(configs.Get().Service.Cron.Volume, func() {
-		common.Retry(3, time.Minute, NewVolumeFetcher().FetchAndMail)
+		err := common.Retry(3, time.Minute, NewVolumeFetcher().FetchAndMail)
+		if err != nil {
+			logrus.Errorf("[Services] Run volume task failed: %v", err)
+		}
 		logNextRunTime(c, entryId)
 	})
 	if err != nil {
@@ -46,7 +49,10 @@ func runPosRewardTask(c *cron.Cron) cron.EntryID {
 	var entryId cron.EntryID
 	cfg := configs.Get()
 	_entryId, err := c.AddFunc(cfg.Service.Cron.PosReward, func() {
-		common.Retry(3, time.Minute, NewPosRewardFetcher(cfg.PosValidatorsByScan, cfg.PosValidatorsByContract).FetchAndMail)
+		err := common.Retry(3, time.Minute, NewPosRewardFetcher(cfg.PosValidatorsByScan, cfg.PosValidatorsByContract).FetchAndMail)
+		if err != nil {
+			logrus.Errorf("[Services] Run pos reward task failed: %v", err)
+		}
 		logNextRunTime(c, entryId)
 	})
 	if err != nil {
