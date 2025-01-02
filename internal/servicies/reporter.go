@@ -140,6 +140,9 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 	f.SetCellValue(sheetName, "D1", "查询用户")
 	f.SetCellValue(sheetName, "E1", "历史总收益(CFX)")
 	f.SetCellValue(sheetName, "F1", "成本期收益(CFX)")
+	f.SetCellValue(sheetName, "G1", "查询Epoch")
+	f.SetCellValue(sheetName, "H1", "Epoch时间")
+	f.SetCellValue(sheetName, "I1", "Scan查询时间")
 
 	row := 2
 	for _, reward := range r.PosRewardsByScanResult {
@@ -147,6 +150,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
 		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
 		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Data.String())
+		f.SetCellValue(sheetName, "I"+strconv.Itoa(row), reward.Time.Format(time.DateTime))
 		row++
 	}
 
@@ -156,6 +160,8 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
 		f.SetCellValue(sheetName, "D"+strconv.Itoa(row), reward.QueryUser.String())
 		f.SetCellValue(sheetName, "F"+strconv.Itoa(row), reward.Data.String())
+		f.SetCellValue(sheetName, "G"+strconv.Itoa(row), reward.Epoch.String())
+		f.SetCellValue(sheetName, "H"+strconv.Itoa(row), reward.Time.Format(time.DateTime))
 		row++
 	}
 

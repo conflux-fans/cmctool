@@ -2,14 +2,16 @@ package configs
 
 import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/conflux-fans/cmctool/internal/constants"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type PosValidatorByContract struct {
-	Name       string             `yaml:"name"`
-	PosAddress common.Hash        `yaml:"posAddress"`
-	PowAddress cfxaddress.Address `yaml:"powAddress"`
-	QueryUser  cfxaddress.Address `yaml:"queryUser"`
+	Name       string                    `yaml:"name"`
+	PosAddress common.Hash               `yaml:"posAddress"`
+	PowAddress cfxaddress.Address        `yaml:"powAddress"`
+	QueryUser  cfxaddress.Address        `yaml:"queryUser"`
+	Method     constants.PosRewardMethod `yaml:"method"`
 }
 
 type PosValidatorByScan struct {
