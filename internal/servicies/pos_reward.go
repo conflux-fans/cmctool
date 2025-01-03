@@ -57,7 +57,7 @@ func (p *PosRewardFetcher) GetPosRewardsByScan() ([]*PosValidatorByScanWithResul
 		rewardInEth := rewardInWei.Div(decimal.New(1, 18))
 		results = append(results, &PosValidatorByScanWithResult[decimal.Decimal]{
 			PosValidatorByScan: posAddress,
-			Time:               posOverView.CreatedAt,
+			Time:               time.Now(),
 			Data:               rewardInEth,
 		})
 	}
@@ -73,7 +73,7 @@ type PosValidatorByContractWithResult[T any] struct {
 
 func (p *PosRewardFetcher) GetPosRewardsByContract() ([]*PosValidatorByContractWithResult[decimal.Decimal], error) {
 	results := make([]*PosValidatorByContractWithResult[decimal.Decimal], 0)
-	monthStart := timeutils.GetMonthStart()
+	monthStart := timeutils.GetMonthStart(timeutils.GetChinaLocation())
 	epochNumber, epochTime, err := cfxutil.SearchEpochOnTime(p.cspaceClient, monthStart)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to search epoch on time")

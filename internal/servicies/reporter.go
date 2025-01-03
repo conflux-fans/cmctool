@@ -9,6 +9,7 @@ import (
 	"github.com/conflux-fans/cmctool/internal/configs"
 	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/conflux-fans/cmctool/pkg/email"
+	"github.com/conflux-fans/cmctool/pkg/timeutils"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
@@ -150,7 +151,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "B"+strconv.Itoa(row), reward.PosAddress.Hex())
 		f.SetCellValue(sheetName, "C"+strconv.Itoa(row), reward.PowAddress.String())
 		f.SetCellValue(sheetName, "E"+strconv.Itoa(row), reward.Data.String())
-		f.SetCellValue(sheetName, "I"+strconv.Itoa(row), reward.Time.Format(time.DateTime))
+		f.SetCellValue(sheetName, "I"+strconv.Itoa(row), timeutils.ToChinaTime(reward.Time).Format(time.DateTime))
 		row++
 	}
 
@@ -161,7 +162,7 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "D"+strconv.Itoa(row), reward.QueryUser.String())
 		f.SetCellValue(sheetName, "F"+strconv.Itoa(row), reward.Data.String())
 		f.SetCellValue(sheetName, "G"+strconv.Itoa(row), reward.Epoch.String())
-		f.SetCellValue(sheetName, "H"+strconv.Itoa(row), reward.Time.Format(time.DateTime))
+		f.SetCellValue(sheetName, "H"+strconv.Itoa(row), timeutils.ToChinaTime(reward.Time).Format(time.DateTime))
 		row++
 	}
 

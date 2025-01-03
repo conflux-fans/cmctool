@@ -14,7 +14,7 @@ import (
 func TestSearchEpochOnTime(t *testing.T) {
 	client, err := sdk.NewClient("https://cmain-rpc.nftrainbow.cn/gcnYNYGANW")
 	assert.NoError(t, err)
-	monthStart := timeutils.GetMonthStart()
+	monthStart := timeutils.GetMonthStart(timeutils.GetChinaLocation())
 	logrus.Info("month start: ", monthStart)
 	epoch, time, err := SearchEpochOnTime(client, time.Now())
 	assert.NoError(t, err)
