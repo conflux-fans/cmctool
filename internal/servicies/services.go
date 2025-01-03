@@ -6,12 +6,13 @@ import (
 	"github.com/conflux-fans/cmctool/internal/configs"
 
 	"github.com/conflux-fans/cmctool/pkg/common"
+	"github.com/conflux-fans/cmctool/pkg/timeutils"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
 
 func Start() {
-	c := cron.New()
+	c := cron.New(cron.WithLocation(timeutils.GetChinaLocation()))
 
 	volumeEntryId := runVolumeTask(c)
 	posRewardEntryId := runPosRewardTask(c)
