@@ -16,18 +16,19 @@ func Start() {
 
 	volumeEntryId := runVolumeTask(c)
 	posRewardEntryId := runPosRewardTask(c)
-
+	unionPayEntryId := runUnionPayTask(c)
 	defer func() {
-		logNextRunTime(c, volumeEntryId)
-		logNextRunTime(c, posRewardEntryId)
+		logNextRunTime(c, "volume", volumeEntryId)
+		logNextRunTime(c, "posReward", posRewardEntryId)
+		logNextRunTime(c, "unionPay", unionPayEntryId)
 	}()
 
 	c.Start()
 }
 
-func logNextRunTime(c *cron.Cron, entryId cron.EntryID) {
+func logNextRunTime(c *cron.Cron, name string, entryId cron.EntryID) {
 	nextTime := c.Entry(cron.EntryID(entryId)).Next
-	logrus.Infof("[Services] Next task execution time: %v\n", nextTime)
+	logrus.Infof("[Services] Next %s task execution time: %v\n", name, nextTime)
 }
 
 func runVolumeTask(c *cron.Cron) cron.EntryID {
@@ -37,7 +38,7 @@ func runVolumeTask(c *cron.Cron) cron.EntryID {
 		if err != nil {
 			logrus.Errorf("[Services] Run volume task failed: %v", err)
 		}
-		logNextRunTime(c, entryId)
+		logNextRunTime(c, "volume", entryId)
 	})
 	if err != nil {
 		panic(err)
@@ -54,7 +55,24 @@ func runPosRewardTask(c *cron.Cron) cron.EntryID {
 		if err != nil {
 			logrus.Errorf("[Services] Run pos reward task failed: %v", err)
 		}
-		logNextRunTime(c, entryId)
+		logNextRunTime(c, "posReward", entryId)
+	})
+	if err != nil {
+		panic(err)
+	}
+	entryId = _entryId
+	return entryId
+}
+
+func runUnionPayTask(c *cron.Cron) cron.EntryID {
+	var entryId cron.EntryID
+	cfg := configs.Get()
+	_entryId, err := c.AddFunc(cfg.Service.Cron.UnionPay, func() {
+		err := common.Retry(3, time.Minute, NewUnionPayBalanceService(cfg.UnionPay.AdminClientUrl, cfg.UnionPay.AdminPrivateKey).FetchAndMail)
+		if err != nil {
+			logrus.Errorf("[Services] Run union pay task failed: %v", err)
+		}
+		logNextRunTime(c, "unionPay", entryId)
 	})
 	if err != nil {
 		panic(err)

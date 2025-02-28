@@ -32,6 +32,7 @@ type Config struct {
 		Receivers struct {
 			Volume    []string `yaml:"volume"`
 			PosReward []string `yaml:"posReward"`
+			UnionPay  []string `yaml:"unionPay"`
 		} `yaml:"receivers"`
 	} `yaml:"mail"`
 	Server struct {
@@ -42,10 +43,15 @@ type Config struct {
 	} `yaml:"server"`
 	PosValidatorsByContract []*PosValidatorByContract `yaml:"posValidatorsByContract"`
 	PosValidatorsByScan     []*PosValidatorByScan     `yaml:"posValidatorsByScan"`
-	Service                 struct {
+	UnionPay                struct {
+		AdminClientUrl  string `yaml:"adminClientUrl"`
+		AdminPrivateKey string `yaml:"adminPrivateKey"`
+	} `yaml:"unionPay"`
+	Service struct {
 		Cron struct {
 			Volume    string `yaml:"volume"`
 			PosReward string `yaml:"posReward"`
+			UnionPay  string `yaml:"unionPay"`
 		} `yaml:"cron"`
 	} `yaml:"service"`
 }

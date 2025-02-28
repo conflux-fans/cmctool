@@ -107,7 +107,7 @@ func (v *VolumeFetcher) FetchAndMail() error {
 		return err
 	}
 
-	reporter := NewReporter(allTokenMarketPairs, nil, nil)
+	reporter := NewReporter(allTokenMarketPairs, nil, nil, nil)
 	excelPath, err := reporter.WriteToExcel(&WriteEnables{
 		IncludeTokenMarket: true,
 	})

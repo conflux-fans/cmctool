@@ -10,6 +10,7 @@ import (
 	"github.com/conflux-fans/cmctool/pkg/cmcsdk/types"
 	"github.com/conflux-fans/cmctool/pkg/email"
 	"github.com/conflux-fans/cmctool/pkg/timeutils"
+	"github.com/conflux-fans/cmctool/pkg/unionpaysdk/types/admintypes"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
@@ -19,13 +20,19 @@ type Reporter struct {
 	AllTokenMarketPairs        map[string]*types.MarketPairsResp
 	PosRewardsByScanResult     []*PosValidatorByScanWithResult[decimal.Decimal]
 	PosRewardsByContractResult []*PosValidatorByContractWithResult[decimal.Decimal]
+	UnionPayBalance            *admintypes.FinanceBalanceResponse
 }
 
-func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp, posRewardsByScanResult []*PosValidatorByScanWithResult[decimal.Decimal], posRewardsByContractResult []*PosValidatorByContractWithResult[decimal.Decimal]) *Reporter {
+func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp,
+	posRewardsByScanResult []*PosValidatorByScanWithResult[decimal.Decimal],
+	posRewardsByContractResult []*PosValidatorByContractWithResult[decimal.Decimal],
+	unionPayBalance *admintypes.FinanceBalanceResponse,
+) *Reporter {
 	return &Reporter{
 		AllTokenMarketPairs:        allTokenMarketPairs,
 		PosRewardsByScanResult:     posRewardsByScanResult,
 		PosRewardsByContractResult: posRewardsByContractResult,
+		UnionPayBalance:            unionPayBalance,
 	}
 }
 
@@ -44,6 +51,7 @@ func NewReporter(allTokenMarketPairs map[string]*types.MarketPairsResp, posRewar
 type WriteEnables struct {
 	IncludeTokenMarket bool
 	IncludePosRewards  bool
+	IncludeUnionPay    bool
 }
 
 func (r *Reporter) WriteToExcel(enables *WriteEnables) (string, error) {
@@ -55,6 +63,9 @@ func (r *Reporter) WriteToExcel(enables *WriteEnables) (string, error) {
 	}
 	if enables.IncludePosRewards {
 		excelPath += "POS奖励-"
+	}
+	if enables.IncludeUnionPay {
+		excelPath += "UnionPay-"
 	}
 	excelPath += yesterday + ".xlsx"
 
@@ -82,6 +93,12 @@ func (r *Reporter) WriteToExcel(enables *WriteEnables) (string, error) {
 		}
 	}
 
+	if enables.IncludeUnionPay {
+		if err := r.writeUnionPay(f); err != nil {
+			return "", err
+		}
+	}
+
 	f.DeleteSheet("Sheet1")
 	f.SetActiveSheet(0)
 
@@ -90,7 +107,7 @@ func (r *Reporter) WriteToExcel(enables *WriteEnables) (string, error) {
 		return "", err
 	}
 
-	logrus.WithField("excelPath", excelPath).WithField("includePosRewards", enables.IncludePosRewards).WithField("includeTokenMarket", enables.IncludeTokenMarket).Infoln("[Reporter] Excel file created successfully.")
+	logrus.WithField("excelPath", excelPath).WithField("includePosRewards", enables.IncludePosRewards).WithField("includeTokenMarket", enables.IncludeTokenMarket).WithField("includeUnionPay", enables.IncludeUnionPay).Infoln("[Reporter] Excel file created successfully.")
 	return excelPath, nil
 }
 
@@ -165,6 +182,19 @@ func (r *Reporter) writePosRewards(f *excelize.File) error {
 		f.SetCellValue(sheetName, "H"+strconv.Itoa(row), timeutils.ToChinaTime(reward.Time).Format(time.DateTime))
 		row++
 	}
+
+	return nil
+}
+
+func (r *Reporter) writeUnionPay(f *excelize.File) error {
+	sheetName := "UnionPay"
+	f.NewSheet(sheetName)
+
+	f.SetCellValue(sheetName, "A1", "充值余额")
+	f.SetCellValue(sheetName, "B1", "卡余额")
+
+	f.SetCellValue(sheetName, "A2", r.UnionPayBalance.Bank.TopupBalance)
+	f.SetCellValue(sheetName, "B2", r.UnionPayBalance.Bank.CardBalance)
 
 	return nil
 }

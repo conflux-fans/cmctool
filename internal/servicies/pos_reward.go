@@ -145,7 +145,7 @@ func (p *PosRewardFetcher) FetchAndMail() error {
 	}
 	logrus.Info("[PosRewardFetcher] === Collect Pos Rewards by scan done ===")
 
-	reporter := NewReporter(nil, posRewardsByScanResult, posRewardsByContractResult)
+	reporter := NewReporter(nil, posRewardsByScanResult, posRewardsByContractResult, nil)
 	excelPath, err := reporter.WriteToExcel(&WriteEnables{
 		IncludePosRewards: true,
 	})
