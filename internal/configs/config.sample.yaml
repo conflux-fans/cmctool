@@ -1,8 +1,34 @@
 mail:
   sender:
+    fromAlias: "Conflux"
     host: "smtp.feishu.cn"
     port: 465
-    username: "abc@nftrainbow.cn"
-    password: "pswd"
+    username: "xxxx"
+    password: "xxxx"
   receivers:
-    - "finance@confluxnetwork.org"
+    volume: ["xx@xx.com"]
+    posReward: ["xx@xx.com"]
+    unionPay: ["xx@xx.com"]
+
+server:
+    cmc: "https://api.coinmarketcap.com/data-api/v3"
+    scan: "https://confluxscan.io"
+    coreSpaceNode: "https://cmain-rpc.nftrainbow.cn/gcnYNYGANW"
+    espaceNode: "https://evm.confluxrpc.com"
+
+posValidatorsByContract:
+    - name: "Validation Cloud-1 0.01%"
+      posAddress: "0x8111111111111111111111111111111111111111111111111111111111111111"
+      powAddress: "cfx:acc4111"
+      queryUser: "cfx:aanm146"
+      method: "userInterest"
+
+unionPay:
+  adminClientUrl: "https://admin-api.bitunion.io"
+  adminPrivateKey: "0x1111111111111111111111111111111111111111111111111111111111111111"
+
+service:
+  cron:
+    volume: "@every 30m"
+    posReward: "1 0 1 * ?" # 每月1号0点1分执行
+    unionPay: "@every 30s" # 每30秒执行一次
